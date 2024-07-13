@@ -1,0 +1,1059 @@
+openapi: 3.0.0
+info:
+  title: Comprehensive API
+  version: 1.0.0
+  description: API covering various tasks including authentication, messaging, payments, user management, and more.
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: Successfully registered
+        '400':
+          description: Validation error
+
+  /auth/login:
+    post:
+      summary: Log in a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Successfully logged in
+        '401':
+          description: Invalid credentials
+
+  /auth/socialProfile:
+    post:
+      summary: Social login
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                user_id: 
+                  type: string
+                provider:
+                  type: string
+                provider_user_id:
+                  type: string
+                access_token:
+                  type: string
+                created_at:
+                  type: string
+      responses:
+        '200':
+          description: Successfully logged in via social provider
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  
+  /auth/membership:
+    get:
+      responses:
+        '200':
+          description: membership details 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memebershipdetails'
+        '400':
+          description: error    
+
+  /auth/magic-link:
+    post:
+      summary: magic link
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                user_id:
+                  type: string
+                token:
+                  type: string
+                expires_at:
+                  type: string
+                used: 
+                  type: string
+                created_at:
+                  type: string
+      responses:
+        '200':
+          description: Magic link sent
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        
+
+  /auth/change-password:
+    post:
+      summary: Change user password
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+      responses:
+        '200':
+          description: Password changed successfully
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        
+
+  /email/send:
+    post:
+      summary: Send an email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendEmail'
+      responses:
+        '200':
+          description: Email sent
+        '400':
+          description: Validation error
+
+  /payments:
+    post:
+      summary: Process payment
+      tags: 
+       - Payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+      responses:
+        '200':
+          description: Payment processed
+        '400':
+          description: Validation error
+
+  /payments/{method}:
+    post:
+      summary: Process payment
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: method
+          required: true
+          schema:
+            type: string
+          description: The payment method
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '200':
+          description: Payment processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+
+  /payments/{method}/status:
+    get:
+      summary: Get payment status
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: method
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentStatusResponse'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+
+  /payments/{method}/webhook:
+    post:
+      summary: webhook
+      parameters:
+        - in: path
+          name: method
+          required: true
+          schema:
+            type: string
+          description: The payment method
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEvent'
+      responses:
+        '200':
+          description: Webhook received
+        '400':
+          description: Validation error
+
+  /payments/details:
+    get:
+      summary: Process Stripe payment
+      responses:
+        '200':
+          description: Payment detials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Paymentdetails'
+        '400':
+          description: error
+        
+
+  
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+        
+
+  /superadmin/users:
+    get:
+      summary: List all users 
+      responses:
+        '200':
+          description: List of users for superadmin
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /superadmin/organisations:
+    get:
+      summary: List all organisations 
+      responses:
+        '200':
+          description: List of organisations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Organisation'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /organisations:
+    
+    post:
+      summary: Create a new organisation
+      tags:
+        - Organisations
+      requestBody:
+        required: true
+        content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganisationCreate'
+      responses:
+        '200':
+          description: Content updated
+        '400':
+          description: Validation error
+
+  /organisations/{orgId}:
+    get:
+      summary: Get a single organisation record
+      tags:
+        - Organisations
+      parameters:
+        - in: path
+          name: orgId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganisationRes'
+
+  /organisations/{orgId}/users:
+    get:
+      summary: get's all users in an organisation
+      tags:
+        - Organisations
+      parameters:
+        - in: path
+          name: orgId
+          required: true
+          schema:
+            type: string        
+      responses:
+        "200":
+          description: all users in organisation
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Members'
+
+  /settings:
+    get:
+      summary: Get settings
+      responses:
+        '200':
+          description: Application settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+
+  /profile:
+    get:
+      summary: Get user profile
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+  /profile{userid}:
+    put:
+      summary: Update user profile
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: userid
+          required: true
+          schema:
+            type: string
+          description: get user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfile'
+      responses:
+        '200':
+          description: Profile updated
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /landing/privacy-policy:
+    get:
+      summary: Get privacy policy
+      responses:
+        '200':
+          description: Privacy policy
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /landing/about-us:
+    get:
+      summary: Get about us page
+      responses:
+        '200':
+          description: About us
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /contact_us:
+    post:
+      summary: Submit contact form
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactForm'
+      responses:
+        '200':
+          description: Contact form submitted
+        '400':
+          description: Validation error
+
+  /massages/queue:
+    get:
+      summary: massage queue
+      responses:
+        '200':
+          description: massage queue
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /cookies/gdpr:
+    get:
+      summary: Get GDPR cookies policy
+      responses:
+        '200':
+          description: GDPR cookies policy
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /dashboard:
+    get:
+      summary: Get dashboard data
+      responses:
+        '200':
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardData'
+
+  /waitlist:
+    post:
+      summary: Add to waitlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Waitlist'
+      responses:
+        '200':
+          description: Added to waitlist(comming soon)
+        '400':
+          description: Validation error
+
+  /squeeze:
+    get:
+      summary: Get squeeze page data
+      responses:
+        '200':
+          description: Squeeze page data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SqueezePage'
+
+  /invite:
+    post:
+      summary: Send invite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invite'
+      responses:
+        '200':
+          description: Invite sent
+        '400':
+          description: Validation error
+
+  /user-data/export:
+    get:
+      summary: Export user data
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User data export
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDataExport'
+
+  /widgets:
+    get:
+      summary: List all widgets
+      responses:
+        '200':
+          description: List of widgets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Widget'
+
+  /widgets/{id}:
+    get:
+      summary: Get widget by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Widget details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+        '404':
+          description: Widget not found
+
+  /data:
+    get:
+      summary: List data with search and sorting
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataItem'
+
+  /charts:
+    get:
+      summary: Get chart data
+      responses:
+        '200':
+          description: Chart data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartData'
+
+  /content:
+    put:
+      summary: Edit content
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentEdit'
+      responses:
+        '200':
+          description: Content updated
+        '400':
+          description: Validation error
+
+  /notifications:
+    get:
+      summary: Get notifications
+      responses:
+        '200':
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+
+  /blog:
+    get:
+      summary: Get blog posts
+      responses:
+        '200':
+          description: List of blog posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BlogPost'
+
+  /invite-link:
+    get:
+      summary: Get invite link
+      responses:
+        '200':
+          description: Invite link
+          content:
+            application/json:
+              schema:
+                type: string
+
+  /language:
+    get:
+      summary: Get available languages and regions
+      responses:
+        '200':
+          description: Available languages and regions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LanguageRegion'
+
+  /superadmin/email-templates:
+    get:
+      summary: List email templates
+      responses:
+        '200':
+          description: List of email templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmailTemplate'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+      UnauthorizedError:
+        description: Access token is missing or invalid
+
+  schemas:
+    UserRegistration:
+      type: object
+      required:
+        - userid
+        - firstname
+        - lastname
+        - email
+        - password
+        - phone
+      properties:
+        userid:
+          type: string
+        firstname:
+          type: string
+        lastname:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+  
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    Memebershipdetails:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        organisation_id:
+          type: string
+        role: 
+          type: string
+        created_at:
+          type: string
+
+    ChangePassword:
+      type: object
+      required:
+        - oldPassword
+        - newPassword
+      properties:
+        oldPassword:
+          type: string
+        newPassword:
+          type: string
+
+    SendEmail:
+      type: object
+      required:
+        - to
+        - subject
+        - body
+      properties:
+        to:
+          type: string
+        subject:
+          type: string
+        body:
+          type: string
+
+    StripePayment:
+      type: object
+      required:
+        - amount
+        - currency
+        - source
+      properties:
+        amount:
+          type: number
+        currency:
+          type: string
+        source:
+          type: string
+
+    Paymentdetails:
+      type: object
+      properties:
+        id:
+          type: string
+        payment_id:
+          type:
+            string
+        data:
+          type:
+            string
+        created_at:
+          type:
+            string
+        
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+
+    Organisation:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+
+    Settings:
+      type: object
+      properties:
+        theme:
+          type: string
+        notifications:
+          type: boolean
+
+    UserProfile:
+      type: object
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+        bio:
+          type: string
+
+    ContactForm:
+      type: object
+      required:
+        - name
+        - email
+        - message
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        message:
+          type: string
+
+    DashboardData:
+      type: object
+      properties:
+        stats:
+          type: object
+          additionalProperties:
+            type: number
+
+    Waitlist:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+
+    SqueezePage:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+
+    Invite:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+
+    UserDataExport:
+      type: object
+      properties:
+        data:
+          type: string
+
+    Widget:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    DataItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        value:
+          type: string
+
+    ChartData:
+      type: object
+      properties:
+        labels:
+          type: array
+          items:
+            type: string
+        data:
+          type: array
+          items:
+            type: number
+
+    ContentEdit:
+      type: object
+      required:
+        - id
+        - content
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+        message:
+          type: string
+        read:
+          type: boolean
+
+    BlogPost:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+
+    LanguageRegion:
+      type: object
+      properties:
+        language:
+          type: string
+        region:
+          type: string
+
+    EmailTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        subject:
+          type: string
+        body:
+          type: string
+
+    Payment:
+      type: object
+      properties:
+        status: 
+          type: string 
+        userid: 
+          type: string
+          format: uuid
+        payment_method: 
+          type: string 
+          format: stripe | fluttterwave | lemonsqueezy
+        gateway_reference: 
+          type: string
+        currency: 
+          type: string
+        amount:
+          type: number
+
+    PaymentRequest:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: number
+        currency:
+          type: string
+
+    PaymentResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        transactionId:
+          type: string
+
+    PaymentStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        transactionId:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+
+    WebhookEvent:
+      type: object
+      properties:
+        event:
+          type: string
+        data:
+          type: object
+    
+    OrganisationCreate: 
+      type: object
+      properties: 
+        name: 
+          type: string 
+        owner_id: 
+          type: string 
+          format: uuid 
+
+    OrganisationRes: 
+      type: object 
+      properties: 
+        id: 
+          type: string 
+          format: uuid 
+        name: 
+          type: string 
+        owner_id: 
+          type: string 
+          format: uuid 
+        created_at: 
+          type: string
+        updated_at: 
+          type: string
+
+    Members: 
+      type: object 
+      properties: 
+        id: 
+          type: string 
+          format: uuid 
+        role: 
+          type: string 
+        organisation_id: 
+          type: string 
+          format: uuid 
+        created_at: 
+            type: string
